@@ -1,0 +1,163 @@
+<!DOCTYPE>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>You can count down on me!</title>
+    <style>
+    body {
+      background: rgb(24,98,171);
+      font-family: sans-serif;
+      font-size: 20px;
+      padding: 0;
+      margin: 0;
+      width: 100%;
+      text-align: center;
+      color: white;
+    }
+
+    button {
+      font-size: 1em;
+      color: white;
+      padding: 0.25em 0.5em;
+      background: #111;
+      border: 1px solid white;
+      border-radius: 5px;
+      margin: 0 0.5em;
+    }
+
+    button:hover {
+      color: #111;
+      background: white;
+    }
+
+    #card {
+      line-height: 1;
+    }
+
+    #panel {
+      background: #111;
+      color: white;
+      padding: 1em 2em;
+      position: fixed;
+      width: 100%;
+      bottom: 0;
+      height: 2em;
+    }
+
+    .first {
+      background: rgb(43,138,62);
+    }
+    .second {
+      background: rgb(230,119,0);
+    }
+    .last {
+      background: rgb(201,42,42);
+    }
+    </style>
+  </head>
+  <body>
+    <div id="card"><span id="card-minute"></span></div>
+    <div id="panel">
+      剩下 <span id="time-minute"></span> 分 <span id="time-second"></span> 秒
+      <button id="btn-start">開始</button>
+      <button id="btn-pause">暫停</button>
+      <button id="btn-reset">重設</button>
+    </div>
+    <script>
+    var $ = function (s) {
+      return document.querySelector(s);
+    }
+    var getParam = function (name, url) {
+      if (!url) {
+        url = window.location.href;
+      }
+      name = name.replace(/[\[\]]/g, "\\$&");
+      var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+        results = regex.exec(url);
+      if (!results) return null;
+      if (!results[2]) return '';
+      return decodeURIComponent(results[2].replace(/\+/g, " "));
+    }
+
+    // Set card time
+    var total = (getParam("t") !== null) ? Number(getParam("t")) : 60;
+    var first = (getParam("f") !== null) ? Number(getParam("f")) : 60;
+    var second = (getParam("s") !== null) ? Number(getParam("s")) : 60;
+
+    $("#card-minute").style.fontSize = window.innerHeight - $("#panel").offsetHeight;
+
+    var Countdown = function () {
+      var count;
+      var end;
+
+      function initialize() {
+        $("#card-minute").innerHTML = total;
+        $("#time-minute").innerHTML = total;
+        $("#time-second").innerHTML = 0;
+      }
+      initialize();
+
+      this.start = function () {
+        end = new Date();
+        end.setMinutes(end.getMinutes() + total);
+        count = setInterval(function() {
+          var now = new Date();
+          var h = end.getHours() - now.getHours();
+          var m = end.getMinutes() - now.getMinutes();
+          var s = end.getSeconds() - now.getSeconds();
+
+          var t = h * 60 * 60 + m * 60 + s;
+
+          $("#card-minute").innerHTML = Math.ceil(t / 60);
+
+          $("#time-minute").innerHTML = Math.floor(t / 60);
+          $("#time-second").innerHTML = t % 60;
+
+          if (t <= 0) {
+            word = "時間到";
+            size = window.innerWidth / word.length;
+            line = (window.innerHeight - $("#panel").offsetHeight) / size;
+
+            $("#card-minute").innerHTML = word;
+            $("#card-minute").style.fontSize = size;
+            $("#card-minute").style.lineHeight = line;
+            clearInterval(count);
+          } else if (t < 5) {
+            $("body").className = "last";
+          } else if (t < second * 60 + 5) {
+            $("body").className = "second";
+          } else if (t < first * 60 + 5) {
+            $("body").className = "first";
+          }
+        }, 200);
+      };
+
+      this.pause = function () {
+        clearInterval(count);
+      };
+
+      this.reset = function () {
+        clearInterval(count);
+        initialize();
+      }
+    }
+
+    var countdown = new Countdown();
+    $("#btn-start").addEventListener("click", function(ev) {
+      ev.preventDefault();
+      countdown.start();
+    });
+
+    $("#btn-pause").addEventListener("click", function(ev) {
+      ev.preventDefault();
+      countdown.pause();
+    });
+
+    $("#btn-reset").addEventListener("click", function(ev) {
+      ev.preventDefault();
+      countdown.reset();
+    });
+
+    </script>
+  </body>
+</html>
