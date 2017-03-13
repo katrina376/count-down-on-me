@@ -3,9 +3,9 @@ You can count down on me!
 
 ## Run
 ```
-  git clone https://github.com/katrina376/count-down-on-me.git
-  cd count-down-on-me
-  python3 -m http.server 5566 # 或是任何你用來跑 server 的指令
+  $ git clone https://github.com/katrina376/count-down-on-me.git
+  $ cd count-down-on-me
+  $ python3 -m http.server 5566 # 或是任何你用來跑 server 的指令
 ```
 
 ## Usage
@@ -26,3 +26,4 @@ MIT
 ## Memo
 1. 可以直接連上 https://katrina376.github.io/count-down-on-me/ 使用
 2. 只測過電腦版的 Safari 跟 Chrome
+3. 有瀏覽器通知的功能，可以暫時切到其他視窗去做事
