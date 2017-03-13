@@ -31,7 +31,9 @@
     }
 
     #card {
+      font-size: 1em;
       line-height: 1;
+      white-space: nowrap;
     }
 
     #panel {
@@ -56,7 +58,7 @@
     </style>
   </head>
   <body>
-    <div id="card"></div>
+    <div><span id="card"></span></div>
     <div id="panel">
       剩下 <span id="time-minute"></span> 分 <span id="time-second"></span> 秒
       <button id="btn-start">開始</button>
@@ -84,26 +86,72 @@
     var first = (getParam("f") !== null) ? Number(getParam("f")) : 5;
     var second = (getParam("s") !== null) ? Number(getParam("s")) : 1;
 
+    var can_notify = false;
+    var first_notified = false;
+    var second_notified = false;
+    var last_notified = false;
+
     var init = function () {
       $("#card").innerHTML = total;
       $("#time-minute").innerHTML = total;
       $("#time-second").innerHTML = 0;
       $("body").className = "";
+      first_notified = false;
+      second_notified = false;
+      last_notified = false;
     }
 
-    var adjust = function (word) {
-      var current_text = $("#card").innerHTML.toString();
-      var height = window.innerHeight - $("#panel").offsetHeight;
-      var width = window.innerWidth;
-      var size = Math.min(width / current_text.length, height);
-      var lh = height / size;
+    var adjust = function (len) {
+      console.log(len)
+      var size = 0;
+      var lh = 0;
+
+      var card_height = Number(window.innerHeight) - Number($("#panel").offsetHeight);
+      var card_width = Number(window.innerWidth);
+
+      var text_height = Number($("#card").style.fontSize.toString().split("px")[0]) || 16;
+      var text_width = Number($("#card").offsetWidth);
+
+      var card_ratio = card_height / card_width
+      var text_ratio = text_height / text_width;
+
+      if (card_ratio > text_ratio) {
+        size = card_width / len;
+      } else {
+        size = card_height;
+      }
+
+      lh = card_height / size;
+
       $("#card").style.fontSize = size;
       $("#card").style.lineHeight = lh;
+    }
+
+    var notify = function (text) {
+      if (can_notify) {
+        var notification = new Notification(text);
+      }
     }
 
     window.onload = function () {
       init();
       adjust();
+
+      if (!("Notification" in window)) {
+        alert("不支援通知功能。")
+      } else {
+        if (Notification.permission === "granted") {
+          can_notify = true;
+        } else if (Notification.permission !== "denied") {
+          Notification.requestPermission(function (p) {
+            if (p === "granted") {
+              can_notify = true;
+            }
+          });
+        } else {
+          can_notify = false;
+        }
+      }
     }
 
     window.onresize = function () {
@@ -126,23 +174,37 @@
           var t = h * 60 * 60 + m * 60 + s;
 
           $("#card").innerHTML = Math.ceil(t / 60);
-          adjust();
+          adjust(Math.ceil(t / 60).toString().length);
 
           $("#time-minute").innerHTML = Math.floor(t / 60);
           $("#time-second").innerHTML = t % 60;
 
-          if (t <= 0) {
-            $("#card").innerHTML = "時間到";
-            adjust();
-            clearInterval(count);
-          } else if (t < 5) {
+          if (t < 5) {
             $("body").className = "last";
+            if (!last_notified) {
+              last_notified = true;
+              notify("即將結束");
+            }
           } else if (t < second * 60 + 5) {
             $("body").className = "second";
+            if (!second_notified) {
+              second_notified = true;
+              notify("倒數 " + second + " 分鐘");
+            }
           } else if (t < first * 60 + 5) {
             $("body").className = "first";
+            if (!first_notified) {
+              first_notified = true;
+              notify("倒數 " + first + " 分鐘");
+            }
           }
-        }, 200);
+
+          if (t <= 0) {
+            $("#card").innerHTML = "時間到";
+            adjust("時間到".length);
+            clearInterval(count);
+          }
+        }, 500);
       };
 
       this.pause = function () {
