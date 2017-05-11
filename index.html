@@ -1,12 +1,15 @@
 <!DOCTYPE>
 <html>
   <head>
-    <meta charset="utf-8">
+    <meta charset='utf-8'>
     <title>You can count down on me!</title>
     <style>
+    * {
+      font-family: sans-serif;
+    }
+
     body {
       background: rgb(24,98,171);
-      font-family: sans-serif;
       font-size: 16px;
       padding: 0;
       margin: 0;
@@ -28,6 +31,15 @@
     button:hover {
       color: #111;
       background: white;
+    }
+
+    #music-box {
+      position: absolute;
+      bottom: 0;
+      z-index: -1;
+      border: none;
+      width: 5;
+      height: 5;
     }
 
     #card {
@@ -58,13 +70,14 @@
     </style>
   </head>
   <body>
-    <div><span id="card"></span></div>
-    <div id="panel">
-      剩下 <span id="time-minute"></span> 分 <span id="time-second"></span> 秒
-      <button id="btn-start">開始</button>
-      <button id="btn-pause">暫停</button>
-      <button id="btn-reset">重設</button>
+    <div><span id='card'></span></div>
+    <div id='panel'>
+      剩下 <span id='time-minute'></span> 分 <span id='time-second'></span> 秒
+      <button id='btn-start'>開始</button>
+      <button id='btn-pause'>暫停</button>
+      <button id='btn-reset'>重設</button>
     </div>
+    <iframe id='music-box' src=''></iframe>
     <script>
     var $ = function (s) {
       return document.querySelector(s);
@@ -73,32 +86,55 @@
       if (!url) {
         url = window.location.href;
       }
-      name = name.replace(/[\[\]]/g, "\\$&");
-      var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+      name = name.replace(/[\[\]]/g, '\\$&');
+      var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
         results = regex.exec(url);
       if (!results) return null;
       if (!results[2]) return '';
-      return decodeURIComponent(results[2].replace(/\+/g, " "));
+      return decodeURIComponent(results[2].replace(/\+/g, ' '));
+    }
+    var query = function (query_str, default_value) {
+      if (typeof default_value === 'number') {
+        return (getParam(query_str) !== null) ? Number(getParam(query_str)) : default_value;
+      } else {
+        return (getParam(query_str) !== null) ? getParam(query_str) : default_value;
+      }
     }
 
     // Get time
-    var total = (getParam("t") !== null) ? Number(getParam("t")) : 60;
-    var first = (getParam("f") !== null) ? Number(getParam("f")) : 5;
-    var second = (getParam("s") !== null) ? Number(getParam("s")) : 1;
+    var total_time = query('total', 60);
+    var first_alert_time = query('t1', 5);
+    var second_alert_time = query('t2', 1);
+
+    // Get Youtube Music Info
+    var first_video_id = query('t1_v', '');
+    var first_start_time = query('t1_t', '0s');
+    var second_video_id = query('t2_v', '');
+    var second_start_time = query('t2_t', '0s');
+    var last_video_id = query('end_v', '');
+    var last_start_time = query('end_t', '0s');
 
     var can_notify = false;
     var first_notified = false;
+    var first_alerted = false;
     var second_notified = false;
+    var second_alerted = false;
     var last_notified = false;
+    var last_alerted = false;
+
 
     var init = function () {
-      $("#card").innerHTML = total;
-      $("#time-minute").innerHTML = total;
-      $("#time-second").innerHTML = 0;
-      $("body").className = "";
+      $('#card').innerHTML = total_time;
+      $('#time-minute').innerHTML = total_time;
+      $('#time-second').innerHTML = 0;
+      $('body').className = '';
+      $('#music-box').setAttribute('src', '');
       first_notified = false;
+      first_alerted = false;
       second_notified = false;
+      second_alerted = false;
       last_notified = false;
+      last_alerted = false;
     }
 
     var adjust = function (len) {
@@ -106,11 +142,11 @@
       var size = 0;
       var lh = 0;
 
-      var card_height = Number(window.innerHeight) - Number($("#panel").offsetHeight);
+      var card_height = Number(window.innerHeight) - Number($('#panel').offsetHeight);
       var card_width = Number(window.innerWidth);
 
-      var text_height = Number($("#card").style.fontSize.toString().split("px")[0]) || 16;
-      var text_width = Number($("#card").offsetWidth);
+      var text_height = Number($('#card').style.fontSize.toString().split('px')[0]) || 16;
+      var text_width = Number($('#card').offsetWidth);
 
       var card_ratio = card_height / card_width
       var text_ratio = text_height / text_width;
@@ -123,8 +159,8 @@
 
       lh = card_height / size;
 
-      $("#card").style.fontSize = size;
-      $("#card").style.lineHeight = lh;
+      $('#card').style.fontSize = size;
+      $('#card').style.lineHeight = lh;
     }
 
     var notify = function (text) {
@@ -137,14 +173,14 @@
       init();
       adjust();
 
-      if (!("Notification" in window)) {
-        alert("不支援通知功能。")
+      if (!('Notification' in window)) {
+        alert('不支援通知功能。')
       } else {
-        if (Notification.permission === "granted") {
+        if (Notification.permission === 'granted') {
           can_notify = true;
-        } else if (Notification.permission !== "denied") {
+        } else if (Notification.permission !== 'denied') {
           Notification.requestPermission(function (p) {
-            if (p === "granted") {
+            if (p === 'granted') {
               can_notify = true;
             }
           });
@@ -152,6 +188,11 @@
           can_notify = false;
         }
       }
+    }
+
+    var play = function (youtube_id, start_time) {
+      var url = 'https://www.youtube.com/embed/' + youtube_id + '#t=' + start_time + '?autoplay=1';
+      $('#music-box').setAttribute('src', url);
     }
 
     window.onresize = function () {
@@ -164,7 +205,7 @@
 
       this.start = function () {
         end = new Date();
-        end.setMinutes(end.getMinutes() + total);
+        end.setMinutes(end.getMinutes() + total_time);
         count = setInterval(function() {
           var now = new Date();
           var h = end.getHours() - now.getHours();
@@ -173,35 +214,37 @@
 
           var t = h * 60 * 60 + m * 60 + s;
 
-          $("#card").innerHTML = Math.ceil(t / 60);
+          $('#card').innerHTML = Math.ceil(t / 60);
           adjust(Math.ceil(t / 60).toString().length);
 
-          $("#time-minute").innerHTML = Math.floor(t / 60);
-          $("#time-second").innerHTML = t % 60;
+          $('#time-minute').innerHTML = Math.floor(t / 60);
+          $('#time-second').innerHTML = t % 60;
 
-          if (t < 5) {
-            $("body").className = "last";
-            if (!last_notified) {
-              last_notified = true;
-              notify("即將結束");
-            }
-          } else if (t < second * 60 + 5) {
-            $("body").className = "second";
-            if (!second_notified) {
-              second_notified = true;
-              notify("倒數 " + second + " 分鐘");
-            }
-          } else if (t < first * 60 + 5) {
-            $("body").className = "first";
-            if (!first_notified) {
-              first_notified = true;
-              notify("倒數 " + first + " 分鐘");
-            }
+          if ((t < 5) && (!last_notified)) {
+            last_notified = true;
+            $('body').className = 'last';
+            notify('即將結束');
+          } else if ((t < second_alert_time * 60 + 1) && (!second_alerted)) {
+            second_alerted = true;
+            play(second_video_id , second_start_time);
+          } else if ((t < second_alert_time * 60 + 5) && (!second_notified)) {
+            second_notified = true;
+            $('body').className = 'second';
+            notify('倒數 ' + second_alert_time * 60 + ' 分鐘');
+          } else if ((t < first_alert_time * 60 + 1) && (!first_alerted)) {
+            first_alerted = true;
+            play(first_video_id , first_start_time);
+          } else if ((t < first_alert_time * 60 + 5) && (!first_notified)) {
+            first_notified = true;
+            $('body').className = 'first';
+            notify('倒數 ' + first_alert_time + ' 分鐘');
           }
 
-          if (t <= 0) {
-            $("#card").innerHTML = "時間到";
-            adjust("時間到".length);
+          if ((t <= 0) && (!last_alerted)) {
+            last_alerted = true;
+            $('#card').innerHTML = '時間到';
+            adjust('時間到'.length);
+            play(last_video_id , last_start_time);
             clearInterval(count);
           }
         }, 500);
@@ -218,17 +261,17 @@
     }
 
     var countdown = new Countdown();
-    $("#btn-start").addEventListener("click", function(ev) {
+    $('#btn-start').addEventListener('click', function(ev) {
       ev.preventDefault();
       countdown.start();
     });
 
-    $("#btn-pause").addEventListener("click", function(ev) {
+    $('#btn-pause').addEventListener('click', function(ev) {
       ev.preventDefault();
       countdown.pause();
     });
 
-    $("#btn-reset").addEventListener("click", function(ev) {
+    $('#btn-reset').addEventListener('click', function(ev) {
       ev.preventDefault();
       countdown.reset();
     });
