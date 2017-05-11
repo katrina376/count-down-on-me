@@ -105,14 +105,15 @@
     var total_time = query('total', 60);
     var first_alert_time = query('t1', 5);
     var second_alert_time = query('t2', 1);
+    var last_alert_time = query('t3', 0);
 
     // Get Youtube Music Info
     var first_video_id = query('t1_v', '');
     var first_start_time = query('t1_t', 0);
     var second_video_id = query('t2_v', '');
     var second_start_time = query('t2_t', 0);
-    var last_video_id = query('end_v', '');
-    var last_start_time = query('end_t', 0);
+    var last_video_id = query('t3_v', '');
+    var last_start_time = query('t3_t', 0);
 
     var can_notify = false;
     var first_notified = false;
@@ -138,7 +139,6 @@
     }
 
     var adjust = function (len) {
-      console.log(len)
       var size = 0;
       var lh = 0;
 
@@ -222,7 +222,10 @@
           $('#time-minute').innerHTML = Math.floor(remain / 60);
           $('#time-second').innerHTML = remain % 60;
 
-          if ((remain < 5) && (!last_notified)) {
+          if ((remain < last_alert_time * 60 + 1) && (!last_alerted)) {
+            last_alerted = true;
+            play(last_video_id , last_start_time);
+          } else if ((remain < last_alert_time * 60 + 5) && (!last_notified)) {
             last_notified = true;
             $('body').className = 'last';
             notify('即將結束');
@@ -242,11 +245,9 @@
             notify('倒數 ' + first_alert_time + ' 分鐘');
           }
 
-          if ((remain <= 0 + 2) && (!last_alerted)) {
-            last_alerted = true;
+          if ((remain <= 0) && (last_alerted)) {
             $('#card').innerHTML = '時間到';
             adjust('時間到'.length);
-            play(last_video_id , last_start_time);
             clearInterval(count);
           }
         }, 500);
