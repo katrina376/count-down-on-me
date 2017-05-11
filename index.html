@@ -203,44 +203,46 @@
       var count;
       var end;
 
+      var remain = total_time * 60;
+
       this.start = function () {
         end = new Date();
-        end.setMinutes(end.getMinutes() + total_time);
+        end.setSeconds(end.getSeconds() + remain);
         count = setInterval(function() {
           var now = new Date();
           var h = end.getHours() - now.getHours();
           var m = end.getMinutes() - now.getMinutes();
           var s = end.getSeconds() - now.getSeconds();
 
-          var t = h * 60 * 60 + m * 60 + s;
+          remain = h * 60 * 60 + m * 60 + s;
 
-          $('#card').innerHTML = Math.ceil(t / 60);
-          adjust(Math.ceil(t / 60).toString().length);
+          $('#card').innerHTML = Math.ceil(remain / 60);
+          adjust(Math.ceil(remain / 60).toString().length);
 
-          $('#time-minute').innerHTML = Math.floor(t / 60);
-          $('#time-second').innerHTML = t % 60;
+          $('#time-minute').innerHTML = Math.floor(remain / 60);
+          $('#time-second').innerHTML = remain % 60;
 
-          if ((t < 5) && (!last_notified)) {
+          if ((remain < 5) && (!last_notified)) {
             last_notified = true;
             $('body').className = 'last';
             notify('即將結束');
-          } else if ((t < second_alert_time * 60 + 2) && (!second_alerted)) {
+          } else if ((remain < second_alert_time * 60 + 1) && (!second_alerted)) {
             second_alerted = true;
             play(second_video_id , second_start_time);
-          } else if ((t < second_alert_time * 60 + 5) && (!second_notified)) {
+          } else if ((remain < second_alert_time * 60 + 5) && (!second_notified)) {
             second_notified = true;
             $('body').className = 'second';
             notify('倒數 ' + second_alert_time * 60 + ' 分鐘');
-          } else if ((t < first_alert_time * 60 + 2) && (!first_alerted)) {
+          } else if ((remain < first_alert_time * 60 + 1) && (!first_alerted)) {
             first_alerted = true;
             play(first_video_id , first_start_time);
-          } else if ((t < first_alert_time * 60 + 5) && (!first_notified)) {
+          } else if ((remain < first_alert_time * 60 + 5) && (!first_notified)) {
             first_notified = true;
             $('body').className = 'first';
             notify('倒數 ' + first_alert_time + ' 分鐘');
           }
 
-          if ((t <= 0 + 2) && (!last_alerted)) {
+          if ((remain <= 0 + 2) && (!last_alerted)) {
             last_alerted = true;
             $('#card').innerHTML = '時間到';
             adjust('時間到'.length);
@@ -256,6 +258,7 @@
 
       this.reset = function () {
         clearInterval(count);
+        remain = total_time * 60;
         init();
       }
     }
