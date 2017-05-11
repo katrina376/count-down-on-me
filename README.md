@@ -27,7 +27,6 @@ You can count down on me!
 7. `end_t`：最後警告音效 Youtube 影片開始時間，會提前 1 秒鐘開始載入。預設為 0 秒。
 
 時間結束時會提前 5 秒鐘警告，背景顏色會變成紅色。最後字樣會變為「時間到」。
-Youtube 影片開始時間使用方式請參見：https://support.google.com/youtube/answer/171780?hl=zh-Hant
 
 ## License
 MIT
@@ -38,4 +37,4 @@ MIT
 3. 有瀏覽器通知的功能，可以暫時切到其他視窗去做事
 
 ## Example
-https://katrina376.github.io/count-down-on-me/?total=5&t1=2&t2=1&t1_v=7koJ6aILxo4&t2_v=K5lE0wTDdZc&t2_t=2s&end_v=LbY4MfcJOEw&end_t=25s
+https://katrina376.github.io/count-down-on-me/?total=5&t1=2&t2=1&t1_v=7koJ6aILxo4&t2_v=K5lE0wTDdZc&t2_t=2&end_v=LbY4MfcJOEw&end_t=25

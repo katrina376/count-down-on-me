@@ -108,11 +108,11 @@
 
     // Get Youtube Music Info
     var first_video_id = query('t1_v', '');
-    var first_start_time = query('t1_t', '0s');
+    var first_start_time = query('t1_t', 0);
     var second_video_id = query('t2_v', '');
-    var second_start_time = query('t2_t', '0s');
+    var second_start_time = query('t2_t', 0);
     var last_video_id = query('end_v', '');
-    var last_start_time = query('end_t', '0s');
+    var last_start_time = query('end_t', 0);
 
     var can_notify = false;
     var first_notified = false;
@@ -191,7 +191,7 @@
     }
 
     var play = function (youtube_id, start_time) {
-      var url = 'https://www.youtube.com/embed/' + youtube_id + '?&autoplay=1#t' + start_time;
+      var url = 'https://www.youtube.com/embed/' + youtube_id + '?&autoplay=1&start=' + start_time;
       $('#music-box').setAttribute('src', url);
     }
 
